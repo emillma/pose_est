@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "*.spec": "python",
+        "*.jinja": "jinja",
+        "*.cu": "cuda-cpp",
+        "*.py": "python",
+        "rtklib.h": "c"
+    }
+}
