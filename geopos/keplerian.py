@@ -46,3 +46,4 @@ def kepler2ecef(
     x = xkm * np.cos(omegak) - ykm * np.sin(omegak) * np.cos(ik)
     y = xkm * np.sin(omegak) + ykm * np.cos(omegak) * np.cos(ik)
     z = ykm * np.sin(ik)
+    return toe + tk, x, y, z

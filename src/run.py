@@ -1,12 +1,13 @@
 from cpos_link import CPOSLink
 import time
+
 # import sympy as sp
 # import pyubx2
 # from pyrtcm import RTCMReader
 from pathlib import Path
 import datetime
 
-from credentials import username, password
+from geopos.credentials import username, password
 
 
 def main():
@@ -23,7 +24,7 @@ def main():
                 m += 1
             time.sleep(1)
 
-    fname =  Path("data/cpos.bin")
+    fname = Path("data/cpos.bin")
     fname.write_bytes(data)
 
 

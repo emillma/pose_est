@@ -2,18 +2,12 @@ from pathlib import Path
 import georinex as gr
 
 
-file = Path('data/DGLS00NOR_S_20240081100_01H_GN.rnx.gz')
-file2 = Path('data/BERC00NOR_S_20240081100_01H_GN.rnx.gz')
-# file2 = Path('data/test.rnx')
-# data = file.read_text()
-# file2.write_text('\n'.join(data.split('\n')[:200]))
+file = Path(
+    "/workspaces/pose_est/data/cache/rnx3/1hour/1sec/2024/008/BATC/BATC00NOR_S_20240081100_01H_GN.rnx.gz"
+)
+
 
 dat = gr.load(file)
 df = dat.to_dataframe()
 pos = gr.keplerian2ecef(dat)
-dat2 = gr.load(file2)
-df2 = dat2.to_dataframe()
 print(df)
-print(df2)
-print(df == df2)
-here=True

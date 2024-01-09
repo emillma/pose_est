@@ -13,7 +13,7 @@ shared_fields = [
     "e",
     "cus",
     "sqrt_a",
-    "toe_sow",
+    "toe",
     "cic",
     "omega0",
     "cis",
@@ -61,7 +61,7 @@ def parse_gps_nav(text: str) -> dict:
         out.append(d := m.groupdict())
         d.update((k, float(d[k])) for k in gps_fields)
         d["epoch"] = datetime.strptime(d["epoch"], "%Y %m %d %H %M %S")
-        d["toe"] = timedelta(weeks=d["gps_week"], seconds=d["toe_sow"]).total_seconds()
+        # d["toe"] = timedelta(seconds=d["toe_sow"]).total_seconds()
     return out
 
 
@@ -71,6 +71,6 @@ def parse_gal_nav(text: str) -> dict:
         out.append(d := m.groupdict())
         d.update((k, float(d[k])) for k in gal_fields)
         d["epoch"] = datetime.strptime(d["epoch"], "%Y %m %d %H %M %S")
-        d["toe"] = timedelta(weeks=d["gal_week"], seconds=d["toe_sow"]).total_seconds()
+        # d["toe"] = timedelta(weeks=d["gal_week"], seconds=d["toe_sow"]).total_seconds()
         d["toe"] -= 1024
     return out

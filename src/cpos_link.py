@@ -73,11 +73,12 @@ class CPOSLink:
             xsum_calc = xsum_calc ^ ord(char)
         return "%02X" % xsum_calc
 
+
 if __name__ == "__main__":
     import datetime
-    from credentials import username, password
+    from geopos.credentials import username, password
     from pathlib import Path
-    
+
     data = bytearray()
     time_str = datetime.datetime.now().strftime("%H%M%S.000")
     init_pos = f"$GPGGA,{time_str},6325.306,N,01023.558,E,1,12,1.0,0.0,M,0.0,M,,*60"
@@ -91,5 +92,5 @@ if __name__ == "__main__":
                 m += 1
             time.sleep(1)
 
-    fname =  Path("data/cpos.bin")
+    fname = Path("data/cpos.bin")
     fname.write_bytes(data)

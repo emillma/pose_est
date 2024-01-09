@@ -5,13 +5,13 @@ import datetime
 import itertools
 import gzip
 from io import BytesIO
-from credentials import password, username
+from geopos.credentials import password, username
 from pathlib import Path
 
 
 def get_files(files: list[str], base_dir: Path | None):
     base = "https://etpos.kartverket.no/"
-    
+
     with requests.Session() as s:
         rep = s.post(
             base + "Web Client/Login.xml",
@@ -21,7 +21,7 @@ def get_files(files: list[str], base_dir: Path | None):
         )
         token = re.search(b"(<CsrfToken>)(.*?)(</CsrfToken>)", rep.content)[2]
 
-        def inner(file:str):
+        def inner(file: str):
             rep = s.get(
                 base,
                 params={
@@ -31,8 +31,8 @@ def get_files(files: list[str], base_dir: Path | None):
                 },
                 timeout=1,
             )
-            if base_dir is not  None:
-                base_dir.joinpath(file.rpartition('/')[-1]).write_bytes(rep.content)
+            if base_dir is not None:
+                base_dir.joinpath(file.rpartition("/")[-1]).write_bytes(rep.content)
 
         with ThreadPool(10) as pool:
             return pool.map(inner, files)
@@ -40,7 +40,7 @@ def get_files(files: list[str], base_dir: Path | None):
 
 if __name__ == "__main__":
     # NOTE: \x2f = /
-    
+
     file = "\x2fstationlist\x2fstationlist2022-11-18.xml"
 
     start = datetime.datetime.now() - datetime.timedelta(days=1)
@@ -62,6 +62,6 @@ if __name__ == "__main__":
         )
         for t, m in itertools.product(times, masts)
     ]
-    reps = get_files(files, Path('data'))
-    
+    reps = get_files(files, Path("data"))
+
     pass
