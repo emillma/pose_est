@@ -1,66 +1,63 @@
 import re
 import requests
 from multiprocessing.pool import ThreadPool
-import datetime
-import itertools
+from datetime import datetime, timedelta
 import gzip
-from io import BytesIO
 from credentials import password, username
 from pathlib import Path
+import aiohttp
+import asyncio
 
 
-def get_files(files: list[str], base_dir: Path | None):
+class KartverketClient:
     base = "https://etpos.kartverket.no/"
-    
-    with requests.Session() as s:
-        rep = s.post(
-            base + "Web Client/Login.xml",
+
+    def __init__(self, cache_dir=None):
+        self.session = None
+        self.entered = False
+        self.cache_dir = cache_dir
+
+    async def __aenter__(self):
+        self.entered = True
+        return self
+
+    async def __aexit__(self, *args):
+        await self.session.__aexit__(*args)
+
+    async def set_session(self):
+        assert self.entered
+        self.session = await aiohttp.ClientSession().__aenter__()
+        async with self.session.post(
+            self.base + "Web Client/Login.xml",
             params={"Command": "Login"},
             data={"pword": password, "user": username},
-            timeout=1,
+        ) as r:
+            chunk = await r.content.readany()
+        self.token = re.search(b"(<CsrfToken>)(.*?)(</CsrfToken>)", chunk)[2].decode()
+        return self
+
+    async def get_file(self, file: str):
+        if self.session is None:
+            await self.set_session()
+
+        async with self.session.get(
+            self.base,
+            params={"Command": "Download", "File": file, "CsrfToken": self.token},
+        ) as r:
+            try:
+                return await r.content.read()
+            except aiohttp.ClientPayloadError:
+                return b""
+
+
+async def main():
+    async with KartverketClient() as client:
+        content = await client.get_file(
+            # "rnx3/1hour/1sec/2024/008/DGLS/DGLS00NOR_S_20240081100_01H_01S_MO.rnx.gz"
+            "rnx3/1hour/1sec/2024/008/DGasdfLS/DGLS00NOR_S_20240081100_01H_01S_MO.rnx.gz"
         )
-        token = re.search(b"(<CsrfToken>)(.*?)(</CsrfToken>)", rep.content)[2]
-
-        def inner(file:str):
-            rep = s.get(
-                base,
-                params={
-                    "Command": "Download",
-                    "File": file,
-                    "CsrfToken": token,
-                },
-                timeout=1,
-            )
-            if base_dir is not  None:
-                base_dir.joinpath(file.rpartition('/')[-1]).write_bytes(rep.content)
-
-        with ThreadPool(10) as pool:
-            return pool.map(inner, files)
+        gzip.decompress(content)
 
 
 if __name__ == "__main__":
-    # NOTE: \x2f = /
-    file = "\x2fstationlist\x2fstationlist2022-11-18.xml"
-
-    start = datetime.datetime.now() - datetime.timedelta(days=1)
-
-    times = [start + datetime.timedelta(hours=i) for i in range(3)]
-    masts = ["VIKE", "BIRK"]
-
-    files = [
-        "\x2f".join(
-            [
-                "rnx3",
-                "1hour",
-                "1sec",
-                t.strftime("%Y"),
-                t.strftime("%j"),
-                m,
-                f"{m}00NOR_S_{t.strftime('%Y%j%H')}00_01H_01S_MO.rnx.gz",
-            ]
-        )
-        for t, m in itertools.product(times, masts)
-    ]
-    reps = get_files(files, Path('data'))
-    
-    pass
+    asyncio.run(main())
