@@ -4,12 +4,12 @@ from laika.gps_time import GPSTime
 from datetime import datetime
 
 
-constellations = (ConstellationId.GALILEO,)
-dog = AstroDog(valid_const=constellations)
+constellations = (ConstellationId.GALILEO,ConstellationId.GLONASS,ConstellationId.GPS, ConstellationId.BEIDOU, ConstellationId.QZNSS)
+dog = AstroDog(valid_const = constellations)
 
-ts = GPSTime.from_datetime(datetime(2018, 1, 7, 21, 12, 21))
-prn = "G07"
+ts = GPSTime.from_datetime(datetime(2023, 1, 1, 20, 0, 0))
+# prn = "E03"
 
-eph = dog.download_parse_prediction_orbit(ts)
+eph = dog.get_orbit_data(ts)
 
 here = True

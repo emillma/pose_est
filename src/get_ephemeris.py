@@ -6,10 +6,10 @@ import itertools
 import gzip
 from io import BytesIO
 from credentials import password, username
+from pathlib import Path
 
 
-
-def get_files(files: list[str]):
+def get_files(files: list[str], base_dir: Path | None):
     base = "https://etpos.kartverket.no/"
     
     with requests.Session() as s:
@@ -21,8 +21,8 @@ def get_files(files: list[str]):
         )
         token = re.search(b"(<CsrfToken>)(.*?)(</CsrfToken>)", rep.content)[2]
 
-        def inner(file):
-            return s.get(
+        def inner(file:str):
+            rep = s.get(
                 base,
                 params={
                     "Command": "Download",
@@ -31,6 +31,8 @@ def get_files(files: list[str]):
                 },
                 timeout=1,
             )
+            if base_dir is not  None:
+                base_dir.joinpath(file.rpartition('/')[-1]).write_bytes(rep.content)
 
         with ThreadPool(10) as pool:
             return pool.map(inner, files)
@@ -38,7 +40,6 @@ def get_files(files: list[str]):
 
 if __name__ == "__main__":
     # NOTE: \x2f = /
-    
     file = "\x2fstationlist\x2fstationlist2022-11-18.xml"
 
     start = datetime.datetime.now() - datetime.timedelta(days=1)
@@ -60,6 +61,6 @@ if __name__ == "__main__":
         )
         for t, m in itertools.product(times, masts)
     ]
-
-    reps = get_files(files)
+    reps = get_files(files, Path('data'))
+    
     pass
